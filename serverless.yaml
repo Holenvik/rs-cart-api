@@ -1,0 +1,28 @@
+service: cart-service
+frameworkVersion: '3'
+useDotenv: true
+
+plugins:
+    - serverless-offline
+
+provider:
+    name: aws
+    runtime: nodejs18.x
+    region: us-east-1
+    stage: dev
+
+    environment:
+        PG_HOST: ${env:PG_HOST}
+        PG_PORT: ${env:PG_PORT}
+        PG_NAME: ${env:PG_NAME}
+        PG_USERNAME: ${env:PG_USERNAME}
+        PG_PASSWORD: ${env:PG_PASSWORD}
+
+functions:
+    main:
+        handler: dist/main.handler
+        events:
+            - http:
+                  method: ANY
+                  path: /{any+}
+                  cors: true
