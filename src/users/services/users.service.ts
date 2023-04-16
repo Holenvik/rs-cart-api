@@ -1,28 +1,43 @@
 import { Injectable } from '@nestjs/common';
-
-import { v4 } from 'uuid';
-
+import { Client } from 'pg';
+// import { v4 } from 'uuid';
 import { User } from '../models';
+import { dbOptions } from '@db/config';
+
+const client = new Client(dbOptions);
 
 @Injectable()
 export class UsersService {
-  private readonly users: Record<string, User>;
+  async findOne(userId: string): Promise<User> {
+    await client.connect();
 
-  constructor() {
-    this.users = {}
+    try {
+      const ddlResult = await client.query(`select * from users where id='${userId}'`);
+      console.log('[userService: findOne] ddlResult: ', ddlResult);
+      return ddlResult;
+    } catch (error) {
+      console.error('[userService: findOne] error: ', error)
+    } finally {
+      client.end();
+    }
   }
 
-  findOne(userId: string): User {
-    return this.users[ userId ];
-  }
+  async createOne({ name, email, password }: User): Promise<User> {
+    await client.connect();
 
-  createOne({ name, password }: User): User {
-    const id = v4(v4());
-    const newUser = { id: name || id, name, password };
-
-    this.users[ id ] = newUser;
-
-    return newUser;
+    try {
+      const ddlResult = await client.query(`insert into users
+        (name, email, password)
+        values
+        (${name}, ${email}, ${password})
+        `);
+      console.log('[userService: createOne] ddlResult: ', ddlResult);
+      return ddlResult;
+    } catch (error) {
+      console.error('[userService: createOne] error: ', error)
+    } finally {
+      client.end();
+    }
   }
 
 }
